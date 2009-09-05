@@ -1,0 +1,94 @@
+# This Makefile will allow you to build the static library, a DLL, the
+# DLL-import library, and the test executables using the "mingw" gcc
+# compiler environment.  This Makefile is based on Alfred Reibenschuh's
+# version for 2.1.1, and was modified by Wayne Davison.
+# Modified 2001/10/10 Tobias Peters for libxml2-2.4.5
+
+# Set "PREFIX" to the root of the mingw installed files.
+
+PREFIX = /mingw
+
+CC       = gcc
+CFLAGS   = -Iinclude -fnative-struct -D_WINSOCKAPI_ \
+           -Dsnprintf=_snprintf -Dvsnprintf=_vsnprintf
+LDFLAGS  = -L. -L$(PREFIX)/lib
+LIBS     = -lwsock32 -lz
+
+AR=ar rc
+DLLTOOL=dlltool
+DLLWRAP=dllwrap
+
+
+LIBSRCS=SAX.c entities.c encoding.c error.c parserInternals.c  \
+		parser.c tree.c hash.c list.c xmlIO.c xmlmemory.c uri.c  \
+		valid.c xlink.c HTMLparser.c HTMLtree.c debugXML.c xpath.c  \
+		xpointer.c xinclude.c nanohttp.c nanoftp.c DOCBparser.c \
+		catalog.c strio.c
+
+LIBOBJS=$(LIBSRCS:.c=.o)
+
+OBJS=$(LIBOBJS)
+
+LIBBASE=xml
+LIB=lib$(LIBBASE).a
+DLL=$(LIB:.a=.dll)
+
+OBJ1=testHTML.o
+OBJ2=testSAX.o
+OBJ3=testURI.o
+EXE1=$(OBJ1:.o=.exe)
+EXE2=$(OBJ2:.o=.exe)
+EXE3=$(OBJ3:.o=.exe)
+
+IMPBASE=$(LIBBASE)_dll
+IMP=lib$(IMPBASE).a
+
+DLLFLAGS = --shared -o $(DLL) -Wl,--out-implib,$(IMP)
+
+DEF=$(DLL:.dll=.def)
+
+all: $(LIB) $(DLL) $(DEF) $(IMP) $(EXE1) $(EXE2) $(EXE3)
+
+dll: $(DLL)
+
+lib: $(LIB)
+
+$(DLL) $(IMP): $(LIBOBJS)
+	$(CC) $(DLLFLAGS) $(LIBOBJS) $(LDFLAGS) $(LIBS)
+# -mwindows
+
+$(LIB): $(LIBOBJS)
+	$(AR) $@ $^
+
+$(DEF): $(LIBOBJS)
+	$(DLLTOOL) --kill-at --export-all -D $(DLL) --output-def $@ $^
+
+$(EXE1): $(OBJ1) $(DLL)
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -l$(IMPBASE) $(LIBS)
+	strip $@
+
+$(EXE2): $(OBJ2) $(DLL)
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -l$(IMPBASE) $(LIBS)
+	strip $@
+
+$(EXE3): $(OBJ3) $(LIB)
+	$(CC) $(CFLAGS) $< -o $@ $(LDFLAGS) -l$(LIBBASE) $(LIBS)
+	strip $@
+
+$(OBJ1): $(OBJ1:.o=.c)
+	$(CC) $(CFLAGS) -DLIBXML_DLL_IMPORT=__declspec'(dllimport)' -c $< -o $@
+
+$(OBJ2): $(OBJ2:.o=.c)
+	$(CC) $(CFLAGS) -DLIBXML_DLL_IMPORT=__declspec'(dllimport)' -c $< -o $@
+
+$(OBJ3): $(OBJ3:.o=.c)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+.c.o:
+	$(CC) $(CFLAGS) -DIN_LIBXML -c $< -o $@	
+
+clean:
+	rm *.o *.a *.dll *.def
+
+test: all
+	./$(EXE1)	-c $(OBJS) | xxd | head -3

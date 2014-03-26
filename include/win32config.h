@@ -94,6 +94,7 @@ static int isnan (double d) {
 #endif /* _MSC_VER */
 
 #if defined(_MSC_VER)
+#undef mkdir
 #define mkdir(p,m) _mkdir(p)
 #define snprintf _snprintf
 #if _MSC_VER < 1500

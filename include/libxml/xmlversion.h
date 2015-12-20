@@ -10,6 +10,7 @@
 #ifndef __XML_VERSION_H__
 #define __XML_VERSION_H__
 
+/* ImageMagick defines _DLL for DLL builds */
 #if !defined(_DLL)
 #  if !defined(LIBXML_STATIC)
 #    define LIBXML_STATIC 1
@@ -35,28 +36,28 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * the version string like "1.2.3"
  */
-#define LIBXML_DOTTED_VERSION "2.9.2"
+#define LIBXML_DOTTED_VERSION "2.9.3"
 
 /**
  * LIBXML_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  */
-#define LIBXML_VERSION 20902
+#define LIBXML_VERSION 20903
 
 /**
  * LIBXML_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  */
-#define LIBXML_VERSION_STRING "20902"
+#define LIBXML_VERSION_STRING "20903"
 
 /**
  * LIBXML_VERSION_EXTRA:
  *
  * extra version information, used to show a CVS compilation
  */
-#define LIBXML_VERSION_EXTRA "-GITv2.9.2-rc2-10-gbe2a7ed"
+#define LIBXML_VERSION_EXTRA "-GITCVE-2015-8242"
 
 /**
  * LIBXML_TEST_VERSION:
@@ -64,7 +65,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  * Macro to check that the libxml version in use is compatible with
  * the version the software has been compiled against
  */
-#define LIBXML_TEST_VERSION xmlCheckVersion(20902);
+#define LIBXML_TEST_VERSION xmlCheckVersion(20903);
 
 #ifndef VMS
 #if 0
@@ -96,7 +97,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * Whether the thread support is configured in
  */
-#if defined(_MT)
+#if defined(_MT) /* Defined by ImageMagick for multi-thread builds */
 #if defined(_REENTRANT) || defined(__MT__) || \
     (defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE - 0 >= 199506L))
 #define LIBXML_THREAD_ENABLED
@@ -441,7 +442,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  */
 
 #ifndef LIBXML_ATTR_ALLOC_SIZE
-# if ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3)))
+# if (!defined(__clang__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))))
 #  define LIBXML_ATTR_ALLOC_SIZE(x) __attribute__((alloc_size(x)))
 # else
 #  define LIBXML_ATTR_ALLOC_SIZE(x)

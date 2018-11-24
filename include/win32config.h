@@ -10,7 +10,6 @@
 
 #if defined(_WIN32_WCE)
 #undef HAVE_ERRNO_H
-#include <windows.h>
 #include "wincecompat.h"
 #else
 #define HAVE_SYS_STAT_H
@@ -27,10 +26,6 @@
 
 #ifndef ICONV_CONST
 #define ICONV_CONST const
-#endif
-
-#ifdef NEED_SOCKETS
-#include <wsockcompat.h>
 #endif
 
 /*
@@ -96,12 +91,15 @@ static int isnan (double d) {
 #endif /* _MSC_VER */
 
 #if defined(_MSC_VER)
+#define mkdir(p,m) _mkdir(p)
 #if _MSC_VER < 1900
 #define snprintf _snprintf
 #endif
 #if _MSC_VER < 1500
 #define vsnprintf(b,c,f,a) _vsnprintf(b,c,f,a)
 #endif
+#elif defined(__MINGW32__)
+#define mkdir(p,m) _mkdir(p)
 #endif
 
 /* Threading API to use should be specified here for compatibility reasons.

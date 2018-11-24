@@ -61,7 +61,7 @@
     #define XMLPUBVAR __declspec(dllexport)
   #else
     #define XMLPUBFUN
-    #if !defined(LIBXML_STATIC)
+    #if !defined(LIBXML_STATIC) && !defined(_LIB)
       #define XMLPUBVAR __declspec(dllimport) extern
     #else
       #define XMLPUBVAR extern

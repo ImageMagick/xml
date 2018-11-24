@@ -5,8 +5,7 @@
 #define HAVE_STDARG_H
 #define HAVE_MALLOC_H
 #define HAVE_ERRNO_H
-#define SEND_ARG2_CAST
-#define GETHOSTBYNAME_ARG_CAST
+#define HAVE_STDINT_H
 
 #if defined(_WIN32_WCE)
 #undef HAVE_ERRNO_H
@@ -91,13 +90,15 @@ static int isnan (double d) {
 #endif /* _MSC_VER */
 
 #if defined(_MSC_VER)
-#if _MSC_VER < 1900
+#define mkdir(p,m) _mkdir(p)
+#if _MSC_VER < 1900 // Cannot define this in VS 2015 and above!
 #define snprintf _snprintf
 #endif
 #if _MSC_VER < 1500
 #define vsnprintf(b,c,f,a) _vsnprintf(b,c,f,a)
 #endif
 #elif defined(__MINGW32__)
+#define mkdir(p,m) _mkdir(p)
 #endif
 
 /* Threading API to use should be specified here for compatibility reasons.

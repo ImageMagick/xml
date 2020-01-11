@@ -70,6 +70,7 @@
     <function name="HTML_PI_NODE" link="libxml2-HTMLtree.html#HTML_PI_NODE"/>
     <function name="HTML_PRESERVE_NODE" link="libxml2-HTMLtree.html#HTML_PRESERVE_NODE"/>
     <function name="HTML_TEXT_NODE" link="libxml2-HTMLtree.html#HTML_TEXT_NODE"/>
+    <function name="ICU_PIVOT_BUF_SIZE" link="libxml2-encoding.html#ICU_PIVOT_BUF_SIZE"/>
     <function name="INPUT_CHUNK" link="libxml2-parserInternals.html#INPUT_CHUNK"/>
     <function name="INVALID_SOCKET" link="libxml2-nanoftp.html#INVALID_SOCKET"/>
     <function name="IS_ASCII_DIGIT" link="libxml2-parserInternals.html#IS_ASCII_DIGIT"/>
@@ -265,7 +266,6 @@
     <function name="XML_XPATH_NOVAR" link="libxml2-xpath.html#XML_XPATH_NOVAR"/>
     <function name="XP_ERROR" link="libxml2-xpathInternals.html#XP_ERROR"/>
     <function name="XP_ERROR0" link="libxml2-xpathInternals.html#XP_ERROR0"/>
-    <function name="_REENTRANT" link="libxml2-xmlexports.html#_REENTRANT"/>
     <function name="htmlDefaultSubelement" link="libxml2-HTMLparser.html#htmlDefaultSubelement"/>
     <function name="htmlElementAllowedHereDesc" link="libxml2-HTMLparser.html#htmlElementAllowedHereDesc"/>
     <function name="htmlRequiredAttrs" link="libxml2-HTMLparser.html#htmlRequiredAttrs"/>
@@ -1533,8 +1533,10 @@
     <function name="XPATH_NODESET" link="libxml2-xpath.html#XPATH_NODESET"/>
     <function name="XPATH_NUMBER" link="libxml2-xpath.html#XPATH_NUMBER"/>
     <function name="XPATH_NUMBER_ERROR" link="libxml2-xpath.html#XPATH_NUMBER_ERROR"/>
+    <function name="XPATH_OP_LIMIT_EXCEEDED" link="libxml2-xpath.html#XPATH_OP_LIMIT_EXCEEDED"/>
     <function name="XPATH_POINT" link="libxml2-xpath.html#XPATH_POINT"/>
     <function name="XPATH_RANGE" link="libxml2-xpath.html#XPATH_RANGE"/>
+    <function name="XPATH_RECURSION_LIMIT_EXCEEDED" link="libxml2-xpath.html#XPATH_RECURSION_LIMIT_EXCEEDED"/>
     <function name="XPATH_STACK_ERROR" link="libxml2-xpath.html#XPATH_STACK_ERROR"/>
     <function name="XPATH_START_LITERAL_ERROR" link="libxml2-xpath.html#XPATH_START_LITERAL_ERROR"/>
     <function name="XPATH_STRING" link="libxml2-xpath.html#XPATH_STRING"/>
@@ -2389,6 +2391,7 @@
     <function name="xmlHashCopy ()" link="libxml2-hash.html#xmlHashCopy"/>
     <function name="xmlHashCreate ()" link="libxml2-hash.html#xmlHashCreate"/>
     <function name="xmlHashCreateDict ()" link="libxml2-hash.html#xmlHashCreateDict"/>
+    <function name="xmlHashDefaultDeallocator ()" link="libxml2-hash.html#xmlHashDefaultDeallocator"/>
     <function name="xmlHashFree ()" link="libxml2-hash.html#xmlHashFree"/>
     <function name="xmlHashLookup ()" link="libxml2-hash.html#xmlHashLookup"/>
     <function name="xmlHashLookup2 ()" link="libxml2-hash.html#xmlHashLookup2"/>

@@ -172,7 +172,7 @@ function usage()
 	WScript.Echo(txt);
 }
 
-/* Discovers the version we are working with by reading the apropriate
+/* Discovers the version we are working with by reading the appropriate
    configuration file. Despite its name, this also writes the configuration
    file included by our makefile. */
 function discoverVersion()
@@ -280,6 +280,18 @@ function discoverVersion()
 		vf.WriteLine("DYNRUNTIME=" + (dynruntime? "1" : "0"));
 	}
 	vf.Close();
+	versionFile = "rcVersion.h"
+	vf = fso.CreateTextFile(versionFile, true);
+	vf.WriteLine("/*");
+	vf.WriteLine("  " + versionFile);
+	vf.WriteLine("  This file is generated automatically by " + WScript.ScriptName + ".");
+	vf.WriteLine("*/");
+	vf.WriteBlankLines(1);
+	vf.WriteLine("#define LIBXML_MAJOR_VERSION " + verMajor);
+	vf.WriteLine("#define LIBXML_MINOR_VERSION " + verMinor);
+	vf.WriteLine("#define LIBXML_MICRO_VERSION " + verMicro);
+	vf.WriteLine("#define LIBXML_DOTTED_VERSION " + "\"" + verMajor + "." + verMinor + "." + verMicro + "\"");
+	vf.Close()
 }
 
 /* Configures libxml. This one will generate xmlversion.h from xmlversion.h.in

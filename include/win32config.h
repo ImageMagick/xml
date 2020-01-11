@@ -13,7 +13,6 @@
 #include "wincecompat.h"
 #else
 #define HAVE_SYS_STAT_H
-#define HAVE__STAT
 #define HAVE_STAT
 #define HAVE_STDLIB_H
 #define HAVE_TIME_H
@@ -39,7 +38,7 @@
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 /* MS C-runtime has functions which can be used in order to determine if
    a given floating-point variable contains NaN, (+-)INF. These are 
-   preferred, because floating-point technology is considered propriatary
+   preferred, because floating-point technology is considered proprietary
    by MS and we can assume that their functions know more about their 
    oddities than we do. */
 #include <float.h>
@@ -91,6 +90,7 @@ static int isnan (double d) {
 #endif /* _MSC_VER */
 
 #if defined(_MSC_VER)
+#define mkdir(p,m) _mkdir(p)
 #if _MSC_VER < 1900
 #define snprintf _snprintf
 #endif
@@ -98,6 +98,7 @@ static int isnan (double d) {
 #define vsnprintf(b,c,f,a) _vsnprintf(b,c,f,a)
 #endif
 #elif defined(__MINGW32__)
+#define mkdir(p,m) _mkdir(p)
 #endif
 
 /* Threading API to use should be specified here for compatibility reasons.

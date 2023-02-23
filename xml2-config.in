@@ -4,6 +4,8 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 includedir=@includedir@
 libdir=@libdir@
+cflags=
+libs=
 
 usage()
 {
@@ -84,25 +86,22 @@ while test $# -gt 0; do
             shift
             libs="@XML_LIBS@"
         else
-            libs="@XML_LIBS@ @XML_PRIVATE_LIBS@ @MODULE_PLATFORM_LIBS@"
+            libs="@XML_LIBS@ @XML_PRIVATE_LIBS@ @MODULE_PLATFORM_LIBS@ @LIBS@"
         fi
 
         if [ "@XML_LIBDIR@" != "-L/usr/lib" -a "@XML_LIBDIR@" != "-L/usr/lib64" ]; then
             libs="@XML_LIBDIR@ $libs"
         fi
-
-        libs="$libs @WIN32_EXTRA_LIBADD@"
         ;;
 
     *)
-	usage
-	exit 1
+	usage 1
 	;;
     esac
     shift
 done
 
-if test "$cflags" -o "$libs"; then
+if test -n "$cflags$libs"; then
     echo $cflags $libs
 fi
 

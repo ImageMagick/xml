@@ -11,7 +11,7 @@
 
 #ifdef LIBXML_XPATH_ENABLED
 
-#if !defined(_WIN32) || defined(__CYGWIN__)
+#if !defined(_WIN32)
 #include <unistd.h>
 #endif
 #include <string.h>
@@ -53,7 +53,7 @@ static int checkTestFile(const char *filename) {
     if (stat(filename, &buf) == -1)
         return(0);
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32)
     if (!(buf.st_mode & _S_IFREG))
         return(0);
 #else
@@ -507,7 +507,7 @@ xmlconfInfo(void) {
     fprintf(stderr, "  you need to fetch and extract the\n");
     fprintf(stderr, "  latest XML Conformance Test Suites\n");
     fprintf(stderr, "  http://www.w3.org/XML/Test/xmlts20080827.tar.gz\n");
-    fprintf(stderr, "  see http://www.w3.org/XML/Test/ for informations\n");
+    fprintf(stderr, "  see http://www.w3.org/XML/Test/ for information\n");
 }
 
 static int
@@ -601,7 +601,7 @@ main(int argc ATTRIBUTE_UNUSED, char **argv ATTRIBUTE_UNUSED) {
 #else /* ! LIBXML_XPATH_ENABLED */
 #include <stdio.h>
 int
-main(int argc, char **argv) {
+main(int argc ATTRIBUTE_UNUSED, char **argv) {
     fprintf(stderr, "%s need XPath support\n", argv[0]);
 }
 #endif

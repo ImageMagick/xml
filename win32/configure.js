@@ -35,9 +35,9 @@ var withHttp = true;
 var withHtml = true;
 var withC14n = true;
 var withCatalog = true;
-var withDocb = true;
 var withXpath = true;
 var withXptr = true;
+var withXptrLocs = false;
 var withXinclude = true;
 var withIconv = true;
 var withIcu = false;
@@ -121,9 +121,9 @@ function usage()
 	txt += "  html:       Enable HTML processor (" + (withHtml? "yes" : "no")  + ")\n";
 	txt += "  c14n:       Enable C14N support (" + (withC14n? "yes" : "no")  + ")\n";
 	txt += "  catalog:    Enable catalog support (" + (withCatalog? "yes" : "no")  + ")\n";
-	txt += "  docb:       Enable DocBook support (" + (withDocb? "yes" : "no")  + ")\n";
 	txt += "  xpath:      Enable XPath support (" + (withXpath? "yes" : "no")  + ")\n";
 	txt += "  xptr:       Enable XPointer support (" + (withXptr? "yes" : "no")  + ")\n";
+	txt += "  xptr_locs:  Enable XPointer locs support (" + (withXptrLocs? "yes" : "no")  + ")\n";
 	txt += "  xinclude:   Enable XInclude support (" + (withXinclude? "yes" : "no")  + ")\n";
 	txt += "  iconv:      Enable iconv support (" + (withIconv? "yes" : "no")  + ")\n";
 	txt += "  icu:        Enable icu support (" + (withIcu? "yes" : "no")  + ")\n";
@@ -165,9 +165,9 @@ function usage()
 	txt += "              installed (" + buildLibPrefix + ")\n";
 	txt += "  sodir:      Directory where shared libraries should be installed\n"; 
 	txt += "              (" + buildSoPrefix + ")\n";
-	txt += "  include:    Additional search path for the compiler, particularily\n";
+	txt += "  include:    Additional search path for the compiler, particularly\n";
 	txt += "              where iconv headers can be found (" + buildInclude + ")\n";
-	txt += "  lib:        Additional search path for the linker, particularily\n";
+	txt += "  lib:        Additional search path for the linker, particularly\n";
 	txt += "              where iconv library can be found (" + buildLib + ")\n";
 	WScript.Echo(txt);
 }
@@ -180,20 +180,6 @@ function discoverVersion()
 	var fso, cf, vf, ln, s, iDot, iSlash;
 	fso = new ActiveXObject("Scripting.FileSystemObject");
 	verCvs = "";
-	if (useCvsVer && fso.FileExists("..\\CVS\\Entries")) {
-		cf = fso.OpenTextFile("..\\CVS\\Entries", 1);
-		while (cf.AtEndOfStream != true) {
-			ln = cf.ReadLine();
-			s = new String(ln);
-			if (s.search(/^\/ChangeLog\//) != -1) {
-				iDot = s.indexOf(".");
-				iSlash = s.indexOf("/", iDot);
-				verCvs = "CVS" + s.substring(iDot + 1, iSlash);
-				break;
-			}
-		}
-		cf.Close();
-	}
 	cf = fso.OpenTextFile(configFile, 1);
 	if (compiler == "msvc")
 		versionFile = ".\\config.msvc";
@@ -208,18 +194,18 @@ function discoverVersion()
 	while (cf.AtEndOfStream != true) {
 		ln = cf.ReadLine();
 		s = new String(ln);
-		if (s.search(/^LIBXML_MAJOR_VERSION=/) != -1) {
-			vf.WriteLine(s);
-			verMajor = s.substring(s.indexOf("=") + 1, s.length)
-		} else if(s.search(/^LIBXML_MINOR_VERSION=/) != -1) {
-			vf.WriteLine(s);
-			verMinor = s.substring(s.indexOf("=") + 1, s.length)
-		} else if(s.search(/^LIBXML_MICRO_VERSION=/) != -1) {
-			vf.WriteLine(s);
-			verMicro = s.substring(s.indexOf("=") + 1, s.length)
+		if (m = s.match(/^m4_define\(\[MAJOR_VERSION\], (\w+)\)/)) {
+			vf.WriteLine("LIBXML_MAJOR_VERSION=" + m[1]);
+			verMajor = m[1];
+		} else if(m = s.match(/^m4_define\(\[MINOR_VERSION\], (\w+)\)/)) {
+			vf.WriteLine("LIBXML_MINOR_VERSION=" + m[1]);
+			verMinor = m[1];
+		} else if(m = s.match(/^m4_define\(\[MICRO_VERSION\], (\w+)\)/)) {
+			vf.WriteLine("LIBXML_MICRO_VERSION=" + m[1]);
+			verMicro = m[1];
 		} else if(s.search(/^LIBXML_MICRO_VERSION_SUFFIX=/) != -1) {
 			vf.WriteLine(s);
-			verMicroSuffix = s.substring(s.indexOf("=") + 1, s.length)
+			verMicroSuffix = s.substring(s.indexOf("=") + 1, s.length);
 		}
 	}
 	cf.Close();
@@ -232,9 +218,9 @@ function discoverVersion()
 	vf.WriteLine("WITH_HTML=" + (withHtml? "1" : "0"));
 	vf.WriteLine("WITH_C14N=" + (withC14n? "1" : "0"));
 	vf.WriteLine("WITH_CATALOG=" + (withCatalog? "1" : "0"));
-	vf.WriteLine("WITH_DOCB=" + (withDocb? "1" : "0"));
 	vf.WriteLine("WITH_XPATH=" + (withXpath? "1" : "0"));
 	vf.WriteLine("WITH_XPTR=" + (withXptr? "1" : "0"));
+	vf.WriteLine("WITH_XPTR_LOCS=" + (withXptrLocs? "1" : "0"));
 	vf.WriteLine("WITH_XINCLUDE=" + (withXinclude? "1" : "0"));
 	vf.WriteLine("WITH_ICONV=" + (withIconv? "1" : "0"));
 	vf.WriteLine("WITH_ICU=" + (withIcu? "1" : "0"));
@@ -280,7 +266,7 @@ function discoverVersion()
 		vf.WriteLine("DYNRUNTIME=" + (dynruntime? "1" : "0"));
 	}
 	vf.Close();
-	versionFile = "rcVersion.h"
+	versionFile = "rcVersion.h";
 	vf = fso.CreateTextFile(versionFile, true);
 	vf.WriteLine("/*");
 	vf.WriteLine("  " + versionFile);
@@ -291,7 +277,7 @@ function discoverVersion()
 	vf.WriteLine("#define LIBXML_MINOR_VERSION " + verMinor);
 	vf.WriteLine("#define LIBXML_MICRO_VERSION " + verMicro);
 	vf.WriteLine("#define LIBXML_DOTTED_VERSION " + "\"" + verMajor + "." + verMinor + "." + verMicro + "\"");
-	vf.Close()
+	vf.Close();
 }
 
 /* Configures libxml. This one will generate xmlversion.h from xmlversion.h.in
@@ -329,12 +315,12 @@ function configureLibxml()
 			of.WriteLine(s.replace(/\@WITH_C14N\@/, withC14n? "1" : "0"));
 		} else if (s.search(/\@WITH_CATALOG\@/) != -1) {
 			of.WriteLine(s.replace(/\@WITH_CATALOG\@/, withCatalog? "1" : "0"));
-		} else if (s.search(/\@WITH_DOCB\@/) != -1) {
-			of.WriteLine(s.replace(/\@WITH_DOCB\@/, withDocb? "1" : "0"));
 		} else if (s.search(/\@WITH_XPATH\@/) != -1) {
 			of.WriteLine(s.replace(/\@WITH_XPATH\@/, withXpath? "1" : "0"));
 		} else if (s.search(/\@WITH_XPTR\@/) != -1) {
 			of.WriteLine(s.replace(/\@WITH_XPTR\@/, withXptr? "1" : "0"));
+		} else if (s.search(/\@WITH_XPTR_LOCS\@/) != -1) {
+			of.WriteLine(s.replace(/\@WITH_XPTR_LOCS\@/, withXptrLocs? "1" : "0"));
 		} else if (s.search(/\@WITH_XINCLUDE\@/) != -1) {
 			of.WriteLine(s.replace(/\@WITH_XINCLUDE\@/, withXinclude? "1" : "0"));
 		} else if (s.search(/\@WITH_ICONV\@/) != -1) {
@@ -408,6 +394,14 @@ function configureLibxmlPy()
 			of.WriteLine(s.replace(/\@prefix\@/, buildPrefix));
 		} else if (s.search(/\@WITH_THREADS\@/) != -1) {
 			of.WriteLine(s.replace(/\@WITH_THREADS\@/, withThreads == "no"? "0" : "1"));
+		} else if (s.search(/\@WITH_ZLIB\@/) != -1) {
+			of.WriteLine(s.replace(/\@WITH_ZLIB\@/, withZlib? "1" : "0"));
+		} else if (s.search(/\@WITH_LZMA\@/) != -1) {
+			of.WriteLine(s.replace(/\@WITH_LZMA\@/, withLzma? "1" : "0"));
+		} else if (s.search(/\@WITH_ICONV\@/) != -1) {
+            of.WriteLine(s.replace(/\@WITH_ICONV\@/, withIconv? "1" : "0"));
+		} else if (s.search(/\@WITH_ICU\@/) != -1) {
+			of.WriteLine(s.replace(/\@WITH_ICU\@/, withIcu? "1" : "0"));
 		} else
 			of.WriteLine(ln);
 	}
@@ -430,7 +424,7 @@ function genReadme(bname, ver, file)
 	f.WriteLine("platform.");
 	f.WriteBlankLines(1);
 	f.WriteLine("  The files in this package do not require any special installation");
-	f.WriteLine("steps. Extract the contents of the archive whereever you wish and");
+	f.WriteLine("steps. Extract the contents of the archive wherever you wish and");
 	f.WriteLine("make sure that your tools which use " + bname + " can find it.");
 	f.WriteBlankLines(1);
 	f.WriteLine("  For example, if you want to run the supplied utilities from the command");
@@ -476,12 +470,12 @@ for (i = 0; (i < WScript.Arguments.length) && (error == 0); i++) {
 			withC14n = strToBool(arg.substring(opt.length + 1, arg.length));
 		else if (opt == "catalog")
 			withCatalog = strToBool(arg.substring(opt.length + 1, arg.length));
-		else if (opt == "docb")
-			withDocb = strToBool(arg.substring(opt.length + 1, arg.length));
 		else if (opt == "xpath")
 			withXpath = strToBool(arg.substring(opt.length + 1, arg.length));
 		else if (opt == "xptr")
 			withXptr = strToBool(arg.substring(opt.length + 1, arg.length));
+		else if (opt == "xptr_locs")
+			withXptrLocs = strToBool(arg.substring(opt.length + 1, arg.length));
 		else if (opt == "xinclude")
 			withXinclude = strToBool(arg.substring(opt.length + 1, arg.length));
 		else if (opt == "iconv")
@@ -544,8 +538,6 @@ for (i = 0; (i < WScript.Arguments.length) && (error == 0); i++) {
 			buildStatic = strToBool(arg.substring(opt.length + 1, arg.length));
 		else if (opt == "prefix")
 			buildPrefix = arg.substring(opt.length + 1, arg.length);
-		else if (opt == "incdir")
-			buildIncPrefix = arg.substring(opt.length + 1, arg.length);
 		else if (opt == "bindir")
 			buildBinPrefix = arg.substring(opt.length + 1, arg.length);
 		else if (opt == "libdir")
@@ -669,9 +661,9 @@ txtOut += "       HTTP client: " + boolToStr(withHttp) + "\n";
 txtOut += "    HTML processor: " + boolToStr(withHtml) + "\n";
 txtOut += "      C14N support: " + boolToStr(withC14n) + "\n";
 txtOut += "   Catalog support: " + boolToStr(withCatalog) + "\n";
-txtOut += "   DocBook support: " + boolToStr(withDocb) + "\n";
 txtOut += "     XPath support: " + boolToStr(withXpath) + "\n";
 txtOut += "  XPointer support: " + boolToStr(withXptr) + "\n";
+txtOut += "     XPointer locs: " + boolToStr(withXptrLocs) + "\n";
 txtOut += "  XInclude support: " + boolToStr(withXinclude) + "\n";
 txtOut += "     iconv support: " + boolToStr(withIconv) + "\n";
 txtOut += "     icu   support: " + boolToStr(withIcu) + "\n";

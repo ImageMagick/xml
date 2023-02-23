@@ -89,7 +89,7 @@ testXmlwriterFilename(const char *uri)
         return;
     }
 
-    /* Start an element named "EXAMPLE". Since thist is the first
+    /* Start an element named "EXAMPLE". Since this is the first
      * element, this will be the root element of the document. */
     rc = xmlTextWriterStartElement(writer, BAD_CAST "EXAMPLE");
     if (rc < 0) {
@@ -368,7 +368,7 @@ testXmlwriterMemory(const char *file)
         return;
     }
 
-    /* Start an element named "EXAMPLE". Since thist is the first
+    /* Start an element named "EXAMPLE". Since this is the first
      * element, this will be the root element of the document. */
     rc = xmlTextWriterStartElement(writer, BAD_CAST "EXAMPLE");
     if (rc < 0) {
@@ -644,7 +644,7 @@ testXmlwriterDoc(const char *file)
         return;
     }
 
-    /* Start an element named "EXAMPLE". Since thist is the first
+    /* Start an element named "EXAMPLE". Since this is the first
      * element, this will be the root element of the document. */
     rc = xmlTextWriterStartElement(writer, BAD_CAST "EXAMPLE");
     if (rc < 0) {
@@ -1193,6 +1193,6 @@ ConvertInput(const char *in, const char *encoding)
 #else
 int main(void) {
     fprintf(stderr, "Writer or output support not compiled in\n");
-    exit(1);
+    return 0;
 }
 #endif

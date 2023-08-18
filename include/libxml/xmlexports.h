@@ -10,7 +10,7 @@
 
 /** DOC_DISABLE */
 #if defined(_WIN32) || defined(__CYGWIN__)
-  #ifdef LIBXML_STATIC
+  #if defined(LIBXML_STATIC) || defined(_LIB)
     #define XMLPUBLIC
   #elif defined(IN_LIBXML)
     #define XMLPUBLIC __declspec(dllexport)

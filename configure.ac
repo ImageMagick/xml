@@ -3,7 +3,7 @@ AC_PREREQ([2.63])
 
 m4_define([MAJOR_VERSION], 2)
 m4_define([MINOR_VERSION], 12)
-m4_define([MICRO_VERSION], 1)
+m4_define([MICRO_VERSION], 2)
 
 AC_INIT([libxml2],[MAJOR_VERSION.MINOR_VERSION.MICRO_VERSION])
 AC_CONFIG_SRCDIR([entities.c])
@@ -439,7 +439,7 @@ XML_INCLUDEDIR='-I${includedir}/libxml2'
 XML_CFLAGS=""
 
 dnl Thread-local storage
-if test "$with_tls" != "no"; then
+if test "$with_tls" = "yes"; then
     AC_COMPILE_IFELSE([
         AC_LANG_SOURCE([_Thread_local int v;]) ], [
         AC_DEFINE([XML_THREAD_LOCAL], [_Thread_local], [TLS specifier]) ], [

@@ -36,9 +36,6 @@ xmlcatalog.c
 xmllint.c
 xpath.c
 
-[DEPENDENCIES]
-zlib
-
 [CONFIG_DEFINE]
 /*
   Define to use the GNOME XML library

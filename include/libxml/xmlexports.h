@@ -15,7 +15,7 @@
  */
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-  #if defined(LIBXML_STATIC) || defined(_LIB)
+  #ifdef LIBXML_STATIC
     #define XMLPUBLIC
   #elif defined(IN_LIBXML)
     #define XMLPUBLIC __declspec(dllexport)
@@ -42,7 +42,7 @@
  */
 
 #ifndef ATTRIBUTE_UNUSED
-  #if __GNUC__ * 100 + __GNUC_MINOR__ >= 207
+  #if __GNUC__ * 100 + __GNUC_MINOR__ >= 207 || defined(__clang__)
     #define ATTRIBUTE_UNUSED __attribute__((unused))
   #else
     #define ATTRIBUTE_UNUSED

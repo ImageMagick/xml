@@ -15,7 +15,7 @@
  */
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-  #if defined(LIBXML_STATIC) || defined(_LIB)
+  #ifdef LIBXML_STATIC
     #define XMLPUBLIC
   #elif defined(IN_LIBXML)
     #define XMLPUBLIC __declspec(dllexport)

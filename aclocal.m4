@@ -1887,11 +1887,8 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
-m4_include([m4/ac_try_compile2.m4])
-m4_include([m4/ax_append_flag.m4])
-m4_include([m4/ax_append_link_flags.m4])
-m4_include([m4/ax_check_link_flag.m4])
-m4_include([m4/ax_require_defined.m4])
+m4_include([m4/ax_gcc_func_attribute.m4])
+m4_include([m4/ax_recursive_eval.m4])
 m4_include([m4/libtool.m4])
 m4_include([m4/ltoptions.m4])
 m4_include([m4/ltsugar.m4])

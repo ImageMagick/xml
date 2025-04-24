@@ -92,14 +92,12 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = python
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ac_try_compile2.m4 \
-	$(top_srcdir)/m4/ax_append_flag.m4 \
-	$(top_srcdir)/m4/ax_append_link_flags.m4 \
-	$(top_srcdir)/m4/ax_check_link_flag.m4 \
-	$(top_srcdir)/m4/ax_require_defined.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_gcc_func_attribute.m4 \
+	$(top_srcdir)/m4/ax_recursive_eval.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
 	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/VERSION \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__python_PYTHON_DIST) \
@@ -275,7 +273,6 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BASE_THREAD_LIBS = @BASE_THREAD_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -297,6 +294,8 @@ EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FILECMD = @FILECMD@
 GREP = @GREP@
+HISTORY_CFLAGS = @HISTORY_CFLAGS@
+HISTORY_LIBS = @HISTORY_LIBS@
 ICONV_CFLAGS = @ICONV_CFLAGS@
 ICU_CFLAGS = @ICU_CFLAGS@
 ICU_DEFS = @ICU_DEFS@
@@ -330,7 +329,6 @@ MAKEINFO = @MAKEINFO@
 MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MODULE_EXTENSION = @MODULE_EXTENSION@
-MODULE_PLATFORM_LIBS = @MODULE_PLATFORM_LIBS@
 NM = @NM@
 NMEDIT = @NMEDIT@
 OBJDUMP = @OBJDUMP@
@@ -345,7 +343,6 @@ PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
-PERL = @PERL@
 PKG_CONFIG = @PKG_CONFIG@
 PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
 PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
@@ -360,7 +357,6 @@ PYTHON_VERSION = @PYTHON_VERSION@
 RANLIB = @RANLIB@
 RDL_CFLAGS = @RDL_CFLAGS@
 RDL_LIBS = @RDL_LIBS@
-RELDATE = @RELDATE@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -368,18 +364,15 @@ STRIP = @STRIP@
 TAR = @TAR@
 THREAD_LIBS = @THREAD_LIBS@
 VERSION = @VERSION@
-VERSION_SCRIPT_FLAGS = @VERSION_SCRIPT_FLAGS@
 WGET = @WGET@
 WITH_C14N = @WITH_C14N@
 WITH_CATALOG = @WITH_CATALOG@
 WITH_DEBUG = @WITH_DEBUG@
-WITH_FTP = @WITH_FTP@
 WITH_HTML = @WITH_HTML@
 WITH_HTTP = @WITH_HTTP@
 WITH_ICONV = @WITH_ICONV@
 WITH_ICU = @WITH_ICU@
 WITH_ISO8859X = @WITH_ISO8859X@
-WITH_LEGACY = @WITH_LEGACY@
 WITH_LZMA = @WITH_LZMA@
 WITH_MODULES = @WITH_MODULES@
 WITH_OUTPUT = @WITH_OUTPUT@
@@ -387,26 +380,25 @@ WITH_PATTERN = @WITH_PATTERN@
 WITH_PUSH = @WITH_PUSH@
 WITH_READER = @WITH_READER@
 WITH_REGEXPS = @WITH_REGEXPS@
+WITH_RELAXNG = @WITH_RELAXNG@
 WITH_SAX1 = @WITH_SAX1@
 WITH_SCHEMAS = @WITH_SCHEMAS@
 WITH_SCHEMATRON = @WITH_SCHEMATRON@
 WITH_THREADS = @WITH_THREADS@
 WITH_THREAD_ALLOC = @WITH_THREAD_ALLOC@
-WITH_TREE = @WITH_TREE@
 WITH_VALID = @WITH_VALID@
 WITH_WRITER = @WITH_WRITER@
 WITH_XINCLUDE = @WITH_XINCLUDE@
 WITH_XPATH = @WITH_XPATH@
 WITH_XPTR = @WITH_XPTR@
-WITH_XPTR_LOCS = @WITH_XPTR_LOCS@
 WITH_ZLIB = @WITH_ZLIB@
 XML_CFLAGS = @XML_CFLAGS@
 XML_INCLUDEDIR = @XML_INCLUDEDIR@
 XML_LIBDIR = @XML_LIBDIR@
 XML_LIBS = @XML_LIBS@
-XML_LIBTOOLLIBS = @XML_LIBTOOLLIBS@
 XML_PRIVATE_CFLAGS = @XML_PRIVATE_CFLAGS@
 XML_PRIVATE_LIBS = @XML_PRIVATE_LIBS@
+XML_STATIC_CFLAGS = @XML_STATIC_CFLAGS@
 XSLTPROC = @XSLTPROC@
 Z_CFLAGS = @Z_CFLAGS@
 Z_LIBS = @Z_LIBS@
@@ -583,22 +575,25 @@ $(am__depfiles_remade):
 am--depfiles: $(am__depfiles_remade)
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
@@ -1003,7 +998,7 @@ uninstall-am: uninstall-nodist_pythonPYTHON \
 @WITH_PYTHON_TRUE@all-local: libxml2.py
 
 @WITH_PYTHON_TRUE@$(GENERATED): $(srcdir)/generator.py $(API_DESC)
-@WITH_PYTHON_TRUE@	$(PYTHON) $(srcdir)/generator.py $(srcdir)
+@WITH_PYTHON_TRUE@	$(PYTHON) $(srcdir)/generator.py $(builddir)
 
 # libxml.c #includes libxml2-export.c
 @WITH_PYTHON_TRUE@libxml.$(OBJEXT): libxml2-export.c

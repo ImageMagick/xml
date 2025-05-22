@@ -427,50 +427,43 @@ xmlHashUpdateInternal(xmlHashTablePtr hash, const xmlChar *key,
                       void *payload, xmlHashDeallocator dealloc, int update) {
     xmlChar *copy, *copy2, *copy3;
     xmlHashEntry *entry = NULL;
-    size_t lengths[3] = {0, 0, 0};
-    unsigned hashValue, newSize;
+    size_t lengths[3];
+    unsigned hashValue;
+    int found = 0;
 
     if ((hash == NULL) || (key == NULL))
         return(-1);
 
-    hashValue = xmlHashValue(hash->randomSeed, key, key2, key3, lengths);
-
     /*
      * Check for an existing entry
      */
-    if (hash->size == 0) {
-        newSize = MIN_HASH_SIZE;
-    } else {
-        int found = 0;
-
+    hashValue = xmlHashValue(hash->randomSeed, key, key2, key3, lengths);
+    if (hash->size > 0)
         entry = xmlHashFindEntry(hash, key, key2, key3, hashValue, &found);
-
-        if (found) {
-            if (update) {
-                if (dealloc)
-                    dealloc(entry->payload, entry->key);
-                entry->payload = payload;
-            }
-
-            return(0);
+    if (found) {
+        if (update) {
+            if (dealloc)
+                dealloc(entry->payload, entry->key);
+            entry->payload = payload;
         }
 
-        if (hash->nbElems + 1 > hash->size / MAX_FILL_DENOM * MAX_FILL_NUM) {
-            /* This guarantees that nbElems < INT_MAX */
-            if (hash->size >= MAX_HASH_SIZE)
-                return(-1);
-            newSize = hash->size * 2;
-        } else {
-            newSize = 0;
-        }
+        return(0);
     }
 
     /*
      * Grow the hash table if needed
      */
-    if (newSize > 0) {
-        unsigned mask, displ, pos;
+    if (hash->nbElems + 1 > hash->size / MAX_FILL_DENOM * MAX_FILL_NUM) {
+        unsigned newSize, mask, displ, pos;
 
+        if (hash->size == 0) {
+            newSize = MIN_HASH_SIZE;
+        } else {
+            /* This guarantees that nbElems < INT_MAX */
+            if (hash->size >= MAX_HASH_SIZE)
+                return(-1);
+            newSize = hash->size * 2;
+        }
         if (xmlHashGrow(hash, newSize) != 0)
             return(-1);
 

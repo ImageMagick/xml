@@ -271,10 +271,10 @@ xmlSchematronPErr(xmlSchematronParserCtxtPtr ctxt, xmlNodePtr node, int error,
         data = xmlGenericErrorContext;
     }
 
-    res = xmlRaiseError(schannel, channel, data, ctxt, node,
-                        XML_FROM_SCHEMASP, error, XML_ERR_ERROR, NULL, 0,
-                        (const char *) str1, (const char *) str2, NULL, 0, 0,
-                        msg, str1, str2);
+    res = __xmlRaiseError(schannel, channel, data, ctxt, node,
+                          XML_FROM_SCHEMASP, error, XML_ERR_ERROR, NULL, 0,
+                          (const char *) str1, (const char *) str2, NULL, 0, 0,
+                          msg, str1, str2);
     if (res < 0)
         xmlSchematronPErrMemory(ctxt);
 }
@@ -328,10 +328,10 @@ xmlSchematronVErr(xmlSchematronValidCtxtPtr ctxt, int error,
         data = xmlGenericErrorContext;
     }
 
-    res = xmlRaiseError(schannel, channel, data, ctxt, NULL,
-                        XML_FROM_SCHEMASV, error, XML_ERR_ERROR, NULL, 0,
-                        (const char *) str1, NULL, NULL, 0, 0,
-                        msg, str1);
+    res = __xmlRaiseError(schannel, channel, data, ctxt, NULL,
+                          XML_FROM_SCHEMASV, error, XML_ERR_ERROR, NULL, 0,
+                          (const char *) str1, NULL, NULL, 0, 0,
+                          msg, str1);
     if (res < 0)
         xmlSchematronVErrMemory(ctxt);
 }
@@ -951,6 +951,7 @@ xmlSchematronParseTestReportMsg(xmlSchematronParserCtxtPtr ctxt, xmlNodePtr con)
             xmlFree(select);
         }
         child = child->next;
+        continue;
     }
 }
 
@@ -1048,7 +1049,7 @@ xmlSchematronParseRule(xmlSchematronParserCtxtPtr ctxt,
                 return;
             }
 
-            let = (xmlSchematronLetPtr) xmlMalloc(sizeof(xmlSchematronLet));
+            let = (xmlSchematronLetPtr) malloc(sizeof(xmlSchematronLet));
             let->name = name;
             let->comp = var_comp;
             let->next = NULL;
@@ -1449,7 +1450,7 @@ xmlSchematronReportOutput(xmlSchematronValidCtxtPtr ctxt ATTRIBUTE_UNUSED,
                           xmlNodePtr cur ATTRIBUTE_UNUSED,
                           const char *msg) {
     /* TODO */
-    xmlPrintErrorMessage("%s", msg);
+    fprintf(stderr, "%s", msg);
 }
 
 /**
@@ -1647,17 +1648,17 @@ xmlSchematronReportSuccess(xmlSchematronValidCtxtPtr ctxt,
             data = xmlGenericErrorContext;
         }
 
-        res = xmlRaiseError(schannel, channel, data, NULL, cur,
-                            XML_FROM_SCHEMATRONV,
-                            (test->type == XML_SCHEMATRON_ASSERT) ?
-                                XML_SCHEMATRONV_ASSERT :
-                                XML_SCHEMATRONV_REPORT,
-                            XML_ERR_ERROR, NULL, line,
-                            (pattern == NULL) ?
-                                NULL :
-                                (const char *) pattern->name,
-                            (const char *) path, (const char *) report, 0, 0,
-                            "%s", msg);
+        res = __xmlRaiseError(schannel, channel, data, NULL, cur,
+                              XML_FROM_SCHEMATRONV,
+                              (test->type == XML_SCHEMATRON_ASSERT) ?
+                                  XML_SCHEMATRONV_ASSERT :
+                                  XML_SCHEMATRONV_REPORT,
+                              XML_ERR_ERROR, NULL, line,
+                              (pattern == NULL) ?
+                                  NULL :
+                                  (const char *) pattern->name,
+                              (const char *) path, (const char *) report, 0, 0,
+                              "%s", msg);
         if (res < 0)
             xmlSchematronVErrMemory(ctxt);
     } else {
@@ -1863,6 +1864,11 @@ xmlSchematronRunTest(xmlSchematronValidCtxtPtr ctxt,
                     failed = 1;
                 break;
             case XPATH_UNDEFINED:
+#ifdef LIBXML_XPTR_LOCS_ENABLED
+            case XPATH_POINT:
+            case XPATH_RANGE:
+            case XPATH_LOCATIONSET:
+#endif
             case XPATH_USERS:
                 failed = 1;
                 break;
@@ -2045,5 +2051,48 @@ xmlSchematronValidateDoc(xmlSchematronValidCtxtPtr ctxt, xmlDocPtr instance)
     }
     return(ctxt->nberrors);
 }
+
+#ifdef STANDALONE
+int
+main(void)
+{
+    int ret;
+    xmlDocPtr instance;
+    xmlSchematronParserCtxtPtr pctxt;
+    xmlSchematronValidCtxtPtr vctxt;
+    xmlSchematronPtr schema = NULL;
+
+    pctxt = xmlSchematronNewParserCtxt("tst.sct");
+    if (pctxt == NULL) {
+        fprintf(stderr, "failed to build schematron parser\n");
+    } else {
+        schema = xmlSchematronParse(pctxt);
+        if (schema == NULL) {
+            fprintf(stderr, "failed to compile schematron\n");
+        }
+        xmlSchematronFreeParserCtxt(pctxt);
+    }
+    instance = xmlReadFile("tst.sct", NULL,
+                           XML_PARSE_NOENT | XML_PARSE_NOCDATA);
+    if (instance == NULL) {
+        fprintf(stderr, "failed to parse instance\n");
+    }
+    if ((schema != NULL) && (instance != NULL)) {
+        vctxt = xmlSchematronNewValidCtxt(schema);
+        if (vctxt == NULL) {
+            fprintf(stderr, "failed to build schematron validator\n");
+        } else {
+            ret = xmlSchematronValidateDoc(vctxt, instance);
+            xmlSchematronFreeValidCtxt(vctxt);
+        }
+    }
+    xmlSchematronFree(schema);
+    xmlFreeDoc(instance);
+
+    xmlCleanupParser();
+
+    return (0);
+}
+#endif
 
 #endif /* LIBXML_SCHEMATRON_ENABLED */

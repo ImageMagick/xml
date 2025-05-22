@@ -14,12 +14,11 @@
 #include <libxml/tree.h>
 #include <libxml/xmlerror.h>
 #include <libxml/xmlIO.h>
-#ifdef LIBXML_RELAXNG_ENABLED
-#include <libxml/relaxng.h>
-#endif
 #ifdef LIBXML_SCHEMAS_ENABLED
+#include <libxml/relaxng.h>
 #include <libxml/xmlschemas.h>
 #endif
+/* for compatibility */
 #include <libxml/parser.h>
 
 #ifdef __cplusplus
@@ -289,7 +288,7 @@ XMLPUBFUN int
 		    xmlTextReaderNextSibling	(xmlTextReaderPtr reader);
 XMLPUBFUN int
 		    xmlTextReaderIsValid	(xmlTextReaderPtr reader);
-#ifdef LIBXML_RELAXNG_ENABLED
+#ifdef LIBXML_SCHEMAS_ENABLED
 XMLPUBFUN int
 		    xmlTextReaderRelaxNGValidate(xmlTextReaderPtr reader,
 						 const char *rng);
@@ -301,8 +300,6 @@ XMLPUBFUN int
 XMLPUBFUN int
 		    xmlTextReaderRelaxNGSetSchema(xmlTextReaderPtr reader,
 						 xmlRelaxNGPtr schema);
-#endif
-#ifdef LIBXML_SCHEMAS_ENABLED
 XMLPUBFUN int
 		    xmlTextReaderSchemaValidate	(xmlTextReaderPtr reader,
 						 const char *xsd);
@@ -428,11 +425,6 @@ XMLPUBFUN void
 	    xmlTextReaderGetErrorHandler(xmlTextReaderPtr reader,
 					 xmlTextReaderErrorFunc *f,
 					 void **arg);
-
-XMLPUBFUN void
-	    xmlTextReaderSetResourceLoader(xmlTextReaderPtr reader,
-					   xmlResourceLoader loader,
-					   void *data);
 
 #endif /* LIBXML_READER_ENABLED */
 

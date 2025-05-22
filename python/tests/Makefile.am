@@ -53,7 +53,7 @@ XMLS=		\
     invalid.xml	\
     test.dtd
 
-EXTRA_DIST = $(PYTESTS) $(XMLS) setup_test.py
+EXTRA_DIST = $(PYTESTS) $(XMLS) setup_test.py meson.build
 
 CLEANFILES = core tmp.xml *.pyc
 

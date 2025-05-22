@@ -11,6 +11,7 @@ int
 LLVMFuzzerInitialize(int *argc ATTRIBUTE_UNUSED,
                      char ***argv ATTRIBUTE_UNUSED) {
     xmlFuzzMemSetup();
+    xmlSetGenericErrorFunc(NULL, xmlFuzzErrorFunc);
 
     return 0;
 }
@@ -18,7 +19,7 @@ LLVMFuzzerInitialize(int *argc ATTRIBUTE_UNUSED,
 int
 LLVMFuzzerTestOneInput(const char *data, size_t size) {
     xmlURIPtr uri;
-    size_t failurePos;
+    size_t maxAlloc;
     const char *str1, *str2;
     char *copy;
     xmlChar *strRes;
@@ -28,20 +29,20 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         return(0);
 
     xmlFuzzDataInit(data, size);
-    failurePos = xmlFuzzReadInt(4) % (size * 8 + 100);
+    maxAlloc = xmlFuzzReadInt(4) % (size * 8 + 100);
     str1 = xmlFuzzReadString(NULL);
     str2 = xmlFuzzReadString(NULL);
 
-    xmlFuzzInjectFailure(failurePos);
+    xmlFuzzMemSetLimit(maxAlloc);
 
-    xmlFuzzResetFailure();
+    xmlFuzzResetMallocFailed();
     intRes = xmlParseURISafe(str1, &uri);
-    xmlFuzzCheckFailureReport("xmlParseURISafe", intRes == -1, 0);
+    xmlFuzzCheckMallocFailure("xmlParseURISafe", intRes == -1);
 
     if (uri != NULL) {
-        xmlFuzzResetFailure();
+        xmlFuzzResetMallocFailed();
         strRes = xmlSaveUri(uri);
-        xmlFuzzCheckFailureReport("xmlSaveURI", strRes == NULL, 0);
+        xmlFuzzCheckMallocFailure("xmlSaveURI", strRes == NULL);
         xmlFree(strRes);
         xmlFreeURI(uri);
     }
@@ -52,65 +53,52 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
     xmlFree(xmlSaveUri(uri));
     xmlFreeURI(uri);
 
-    xmlFuzzResetFailure();
+    xmlFuzzResetMallocFailed();
     strRes = BAD_CAST xmlURIUnescapeString(str1, -1, NULL);
-    xmlFuzzCheckFailureReport("xmlURIUnescapeString",
-                              str1 != NULL && strRes == NULL, 0);
+    xmlFuzzCheckMallocFailure("xmlURIUnescapeString",
+                              str1 != NULL && strRes == NULL);
     xmlFree(strRes);
 
     xmlFree(xmlURIEscape(BAD_CAST str1));
 
-    xmlFuzzResetFailure();
+    xmlFuzzResetMallocFailed();
     strRes = xmlCanonicPath(BAD_CAST str1);
-    xmlFuzzCheckFailureReport("xmlCanonicPath",
-                              str1 != NULL && strRes == NULL, 0);
+    xmlFuzzCheckMallocFailure("xmlCanonicPath",
+                              str1 != NULL && strRes == NULL);
     xmlFree(strRes);
 
-    xmlFuzzResetFailure();
+    xmlFuzzResetMallocFailed();
     strRes = xmlPathToURI(BAD_CAST str1);
-    xmlFuzzCheckFailureReport("xmlPathToURI",
-                              str1 != NULL && strRes == NULL, 0);
+    xmlFuzzCheckMallocFailure("xmlPathToURI", str1 != NULL && strRes == NULL);
     xmlFree(strRes);
 
-    xmlFuzzResetFailure();
+    xmlFuzzResetMallocFailed();
     intRes = xmlBuildURISafe(BAD_CAST str2, BAD_CAST str1, &strRes);
-    xmlFuzzCheckFailureReport("xmlBuildURISafe", intRes == -1, 0);
+    xmlFuzzCheckMallocFailure("xmlBuildURISafe", intRes == -1);
     xmlFree(strRes);
 
     xmlFree(xmlBuildURI(BAD_CAST str2, BAD_CAST str1));
 
-    xmlFuzzResetFailure();
+    xmlFuzzResetMallocFailed();
     intRes = xmlBuildRelativeURISafe(BAD_CAST str2, BAD_CAST str1, &strRes);
-    xmlFuzzCheckFailureReport("xmlBuildRelativeURISafe", intRes == -1, 0);
+    xmlFuzzCheckMallocFailure("xmlBuildRelativeURISafe", intRes == -1);
     xmlFree(strRes);
 
     xmlFree(xmlBuildRelativeURI(BAD_CAST str2, BAD_CAST str1));
 
-    xmlFuzzResetFailure();
+    xmlFuzzResetMallocFailed();
     strRes = xmlURIEscapeStr(BAD_CAST str1, BAD_CAST str2);
-    xmlFuzzCheckFailureReport("xmlURIEscapeStr",
-                              str1 != NULL && strRes == NULL, 0);
+    xmlFuzzCheckMallocFailure("xmlURIEscapeStr",
+                              str1 != NULL && strRes == NULL);
     xmlFree(strRes);
 
     copy = (char *) xmlCharStrdup(str1);
     xmlNormalizeURIPath(copy);
     xmlFree(copy);
 
-    xmlFuzzInjectFailure(0);
+    xmlFuzzMemSetLimit(0);
     xmlFuzzDataCleanup();
 
     return 0;
-}
-
-size_t
-LLVMFuzzerCustomMutator(char *data, size_t size, size_t maxSize,
-                        unsigned seed) {
-    static const xmlFuzzChunkDesc chunks[] = {
-        { 4, XML_FUZZ_PROB_ONE / 10 }, /* failurePos */
-        { 0, 0 }
-    };
-
-    return xmlFuzzMutateChunks(chunks, data, size, maxSize, seed,
-                               LLVMFuzzerMutate);
 }
 

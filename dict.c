@@ -25,7 +25,6 @@
 #include <string.h>
 
 #include "private/dict.h"
-#include "private/error.h"
 #include "private/globals.h"
 #include "private/threads.h"
 
@@ -700,7 +699,7 @@ xmlDictLookupInternal(xmlDictPtr dict, const xmlChar *prefix,
                       const xmlChar *name, int maybeLen, int update) {
     xmlDictEntry *entry = NULL;
     const xmlChar *ret;
-    unsigned hashValue, newSize;
+    unsigned hashValue;
     size_t maxLen, len, plen, klen;
     int found = 0;
 
@@ -727,21 +726,10 @@ xmlDictLookupInternal(xmlDictPtr dict, const xmlChar *prefix,
     /*
      * Check for an existing entry
      */
-    if (dict->size == 0) {
-        newSize = MIN_HASH_SIZE;
-    } else {
+    if (dict->size > 0)
         entry = xmlDictFindEntry(dict, prefix, name, klen, hashValue, &found);
-        if (found)
-            return(entry);
-
-        if (dict->nbElems + 1 > dict->size / MAX_FILL_DENOM * MAX_FILL_NUM) {
-            if (dict->size >= MAX_HASH_SIZE)
-                return(NULL);
-            newSize = dict->size * 2;
-        } else {
-            newSize = 0;
-        }
-    }
+    if (found)
+        return(entry);
 
     if ((dict->subdict != NULL) && (dict->subdict->size > 0)) {
         xmlDictEntry *subEntry;
@@ -765,9 +753,16 @@ xmlDictLookupInternal(xmlDictPtr dict, const xmlChar *prefix,
     /*
      * Grow the hash table if needed
      */
-    if (newSize > 0) {
-        unsigned mask, displ, pos;
+    if (dict->nbElems + 1 > dict->size / MAX_FILL_DENOM * MAX_FILL_NUM) {
+        unsigned newSize, mask, displ, pos;
 
+        if (dict->size == 0) {
+            newSize = MIN_HASH_SIZE;
+        } else {
+            if (dict->size >= MAX_HASH_SIZE)
+                return(NULL);
+            newSize = dict->size * 2;
+        }
         if (xmlDictGrow(dict, newSize) != 0)
             return(NULL);
 
@@ -933,13 +928,14 @@ xmlDictQLookup(xmlDictPtr dict, const xmlChar *prefix, const xmlChar *name) {
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
   #include <bcrypt.h>
-  #pragma comment(lib, "bcrypt.lib")
 #else
-  #if HAVE_DECL_GETENTROPY
-    /* POSIX 2024 */
-    #include <unistd.h>
-    /* Older platforms */
-    #include <sys/random.h>
+  #if defined(HAVE_GETENTROPY)
+    #ifdef HAVE_UNISTD_H
+      #include <unistd.h>
+    #endif
+    #ifdef HAVE_SYS_RANDOM_H
+      #include <sys/random.h>
+    #endif
   #endif
   #include <time.h>
 #endif
@@ -962,23 +958,18 @@ xmlInitRandom(void) {
 #ifdef _WIN32
         NTSTATUS status;
 
-        /*
-         * You can find many (recent as of 2025) discussions how
-         * to get a pseudo-random seed on Windows in projects like
-         * Golang, Rust, Chromium and Firefox.
-         *
-         * TODO: Support ProcessPrng available since Windows 10.
-         */
         status = BCryptGenRandom(NULL, (unsigned char *) globalRngState,
                                  sizeof(globalRngState),
                                  BCRYPT_USE_SYSTEM_PREFERRED_RNG);
-        if (!BCRYPT_SUCCESS(status))
-            xmlAbort("libxml2: BCryptGenRandom failed with error code %lu\n",
-                     GetLastError());
+        if (!BCRYPT_SUCCESS(status)) {
+            fprintf(stderr, "libxml2: BCryptGenRandom failed with "
+                    "error code %lu\n", GetLastError());
+            abort();
+        }
 #else
         int var;
 
-#if HAVE_DECL_GETENTROPY
+#if defined(HAVE_GETENTROPY)
         while (1) {
             if (getentropy(globalRngState, sizeof(globalRngState)) == 0)
                 return;
@@ -992,20 +983,14 @@ xmlInitRandom(void) {
             if (errno == ENOSYS)
                 break;
 
-            /*
-             * We really don't want to fallback to the unsafe PRNG
-             * for possibly accidental reasons, so we abort on any
-             * unknown error.
-             */
-            if (errno != EINTR)
-                xmlAbort("libxml2: getentropy failed with error code %d\n",
-                         errno);
+            if (errno != EINTR) {
+                fprintf(stderr, "libxml2: getentropy failed with "
+                        "error code %d\n", errno);
+                abort();
+            }
         }
 #endif
 
-        /*
-         * TODO: Fallback to /dev/urandom for older POSIX systems.
-         */
         globalRngState[0] =
                 (unsigned) time(NULL) ^
                 HASH_ROL((unsigned) ((size_t) &xmlInitRandom & 0xFFFFFFFF), 8);
@@ -1067,6 +1052,10 @@ xmlGlobalRandom(void) {
  */
 unsigned
 xmlRandom(void) {
+#ifdef LIBXML_THREAD_ENABLED
     return(xoroshiro64ss(xmlGetLocalRngState()));
+#else
+    return(xmlGlobalRandom());
+#endif
 }
 

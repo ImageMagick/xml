@@ -1,5 +1,5 @@
 /*
- * reader.c: a libFuzzer target to test the XML Reader API.
+ * xml.c: a libFuzzer target to test several XML parser interfaces.
  *
  * See Copyright for the status of this software.
  */
@@ -15,7 +15,9 @@
 #include <string.h>
 
 #if 0
-  #define DEBUG
+  #define DEBUG printf
+#else
+  #define DEBUG noop
 #endif
 
 typedef enum {
@@ -80,11 +82,14 @@ typedef enum {
 } opType;
 
 static void
+noop(const char *fmt, ...) {
+    (void) fmt;
+}
+
+static void
 startOp(const char *name) {
     (void) name;
-#ifdef DEBUG
-    fprintf(stderr, "%s\n", name);
-#endif
+    DEBUG("%s\n", name);
 }
 
 int
@@ -96,6 +101,8 @@ LLVMFuzzerInitialize(int *argc ATTRIBUTE_UNUSED,
     xmlInitializeCatalog();
     xmlCatalogSetDefaults(XML_CATA_ALLOW_NONE);
 #endif
+    xmlSetGenericErrorFunc(NULL, xmlFuzzErrorFunc);
+    xmlSetExternalEntityLoader(xmlFuzzEntityLoader);
 
     return 0;
 }
@@ -107,14 +114,14 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
     const xmlError *error;
     const char *docBuffer;
     const unsigned char *program;
-    size_t failurePos, docSize, programSize, i;
+    size_t maxAlloc, docSize, programSize, i;
     size_t totalStringSize = 0;
     int opts;
     int oomReport = 0;
 
     xmlFuzzDataInit(data, size);
     opts = (int) xmlFuzzReadInt(4);
-    failurePos = xmlFuzzReadInt(4) % (size + 100);
+    maxAlloc = xmlFuzzReadInt(4) % (size + 100);
 
     program = (const unsigned char *) xmlFuzzReadString(&programSize);
     if (programSize > 1000)
@@ -125,26 +132,10 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
     if (docBuffer == NULL)
         goto exit;
 
-#ifdef DEBUG
-    fprintf(stderr, "Input document (%d bytes):\n", (int) docSize);
-    for (i = 0; (size_t) i < docSize; i++) {
-        int c = (unsigned char) docBuffer[i];
-
-        if ((c == '\n' || (c >= 0x20 && c <= 0x7E)))
-            putc(c, stderr);
-        else
-            fprintf(stderr, "\\x%02X", c);
-    }
-    fprintf(stderr, "\nEOF\n");
-#endif
-
-    xmlFuzzInjectFailure(failurePos);
+    xmlFuzzMemSetLimit(maxAlloc);
     reader = xmlReaderForMemory(docBuffer, docSize, NULL, NULL, opts);
     if (reader == NULL)
         goto exit;
-
-    xmlTextReaderSetStructuredErrorHandler(reader, xmlFuzzSErrorFunc, NULL);
-    xmlTextReaderSetResourceLoader(reader, xmlFuzzResourceLoader, NULL);
 
     i = 0;
     while (i < programSize) {
@@ -528,7 +519,6 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
             case OP_BYTE_CONSUMED:
                 startOp("ByteConsumed");
                 xmlTextReaderByteConsumed(reader);
-                oomReport = -1;
                 break;
         }
 
@@ -539,7 +529,7 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
     error = xmlTextReaderGetLastError(reader);
     if (error->code == XML_ERR_NO_MEMORY)
         oomReport = 1;
-    xmlFuzzCheckFailureReport("reader", oomReport, error->code == XML_IO_EIO);
+    xmlFuzzCheckMallocFailure("reader", oomReport);
 
     xmlFreeTextReader(reader);
 
@@ -547,22 +537,9 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
         xmlFreeDoc(doc);
 
 exit:
-    xmlFuzzInjectFailure(0);
+    xmlFuzzMemSetLimit(0);
     xmlFuzzDataCleanup();
     xmlResetLastError();
     return(0);
-}
-
-size_t
-LLVMFuzzerCustomMutator(char *data, size_t size, size_t maxSize,
-                        unsigned seed) {
-    static const xmlFuzzChunkDesc chunks[] = {
-        { 4, XML_FUZZ_PROB_ONE / 10 }, /* opts */
-        { 4, XML_FUZZ_PROB_ONE / 10 }, /* failurePos */
-        { 0, 0 }
-    };
-
-    return xmlFuzzMutateChunks(chunks, data, size, maxSize, seed,
-                               LLVMFuzzerMutate);
 }
 

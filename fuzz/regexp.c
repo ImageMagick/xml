@@ -13,6 +13,7 @@ int
 LLVMFuzzerInitialize(int *argc ATTRIBUTE_UNUSED,
                      char ***argv ATTRIBUTE_UNUSED) {
     xmlFuzzMemSetup();
+    xmlSetGenericErrorFunc(NULL, xmlFuzzErrorFunc);
 
     return 0;
 }
@@ -20,17 +21,17 @@ LLVMFuzzerInitialize(int *argc ATTRIBUTE_UNUSED,
 int
 LLVMFuzzerTestOneInput(const char *data, size_t size) {
     xmlRegexpPtr regexp;
-    size_t failurePos;
+    size_t maxAlloc;
     const char *str1;
 
     if (size > 200)
         return(0);
 
     xmlFuzzDataInit(data, size);
-    failurePos = xmlFuzzReadInt(4) % (size * 8 + 100);
+    maxAlloc = xmlFuzzReadInt(4) % (size * 8 + 100);
     str1 = xmlFuzzReadString(NULL);
 
-    xmlFuzzInjectFailure(failurePos);
+    xmlFuzzMemSetLimit(maxAlloc);
     regexp = xmlRegexpCompile(BAD_CAST str1);
     if (xmlFuzzMallocFailed() && regexp != NULL) {
         fprintf(stderr, "malloc failure not reported\n");
@@ -42,22 +43,10 @@ LLVMFuzzerTestOneInput(const char *data, size_t size) {
 #endif
     xmlRegFreeRegexp(regexp);
 
-    xmlFuzzInjectFailure(0);
+    xmlFuzzMemSetLimit(0);
     xmlFuzzDataCleanup();
     xmlResetLastError();
 
     return 0;
-}
-
-size_t
-LLVMFuzzerCustomMutator(char *data, size_t size, size_t maxSize,
-                        unsigned seed) {
-    static const xmlFuzzChunkDesc chunks[] = {
-        { 4, XML_FUZZ_PROB_ONE / 10 }, /* failurePos */
-        { 0, 0 }
-    };
-
-    return xmlFuzzMutateChunks(chunks, data, size, maxSize, seed,
-                               LLVMFuzzerMutate);
 }
 

@@ -16,7 +16,7 @@
 #define IN_LIBXML
 #include "libxml.h"
 
-#ifdef LIBXML_RELAXNG_ENABLED
+#ifdef LIBXML_SCHEMAS_ENABLED
 
 #include <string.h>
 #include <stdio.h>
@@ -29,6 +29,7 @@
 
 #include <libxml/relaxng.h>
 
+#include <libxml/xmlschemastypes.h>
 #include <libxml/xmlautomata.h>
 #include <libxml/xmlregexp.h>
 #include <libxml/xmlschemastypes.h>
@@ -228,9 +229,6 @@ struct _xmlRelaxNGParserCtxt {
 
     int crng;			/* compact syntax and other flags */
     int freedoc;		/* need to free the document */
-
-    xmlResourceLoader resourceLoader;
-    void *resourceCtxt;
 };
 
 #define FLAGS_IGNORABLE		1
@@ -490,10 +488,10 @@ xmlRngPErr(xmlRelaxNGParserCtxtPtr ctxt, xmlNodePtr node, int error,
         data = xmlGenericErrorContext;
     }
 
-    res = xmlRaiseError(schannel, channel, data, NULL, node,
-                        XML_FROM_RELAXNGP, error, XML_ERR_ERROR, NULL, 0,
-                        (const char *) str1, (const char *) str2, NULL, 0, 0,
-                        msg, str1, str2);
+    res = __xmlRaiseError(schannel, channel, data, NULL, node,
+                          XML_FROM_RELAXNGP, error, XML_ERR_ERROR, NULL, 0,
+                          (const char *) str1, (const char *) str2, NULL, 0, 0,
+                          msg, str1, str2);
     if (res < 0)
         xmlRngPErrMemory(ctxt);
 }
@@ -532,10 +530,10 @@ xmlRngVErr(xmlRelaxNGValidCtxtPtr ctxt, xmlNodePtr node, int error,
         data = xmlGenericErrorContext;
     }
 
-    res = xmlRaiseError(schannel, channel, data, NULL, node,
-                        XML_FROM_RELAXNGV, error, XML_ERR_ERROR, NULL, 0,
-                        (const char *) str1, (const char *) str2, NULL, 0, 0,
-                        msg, str1, str2);
+    res = __xmlRaiseError(schannel, channel, data, NULL, node,
+                          XML_FROM_RELAXNGV, error, XML_ERR_ERROR, NULL, 0,
+                          (const char *) str1, (const char *) str2, NULL, 0, 0,
+                          msg, str1, str2);
     if (res < 0)
         xmlRngVErrMemory(ctxt);
 }
@@ -1425,9 +1423,6 @@ xmlRelaxReadFile(xmlRelaxNGParserCtxtPtr ctxt, const char *filename) {
     }
     if (ctxt->serror != NULL)
         xmlCtxtSetErrorHandler(pctxt, ctxt->serror, ctxt->userData);
-    if (ctxt->resourceLoader != NULL)
-        xmlCtxtSetResourceLoader(pctxt, ctxt->resourceLoader,
-                                 ctxt->resourceCtxt);
     doc = xmlCtxtReadFile(pctxt, filename, NULL, 0);
     xmlFreeParserCtxt(pctxt);
 
@@ -1446,9 +1441,6 @@ xmlRelaxReadMemory(xmlRelaxNGParserCtxtPtr ctxt, const char *buf, int size) {
     }
     if (ctxt->serror != NULL)
         xmlCtxtSetErrorHandler(pctxt, ctxt->serror, ctxt->userData);
-    if (ctxt->resourceLoader != NULL)
-        xmlCtxtSetResourceLoader(pctxt, ctxt->resourceLoader,
-                                 ctxt->resourceCtxt);
     doc = xmlCtxtReadMemory(pctxt, buf, size, NULL, NULL, 0);
     xmlFreeParserCtxt(pctxt);
 
@@ -3168,9 +3160,9 @@ xmlRelaxNGCompile(xmlRelaxNGParserCtxtPtr ctxt, xmlRelaxNGDefinePtr def)
         case XML_RELAXNG_LIST:
         case XML_RELAXNG_PARAM:
         case XML_RELAXNG_VALUE:
-            xmlRngPErr(ctxt, NULL, XML_ERR_INTERNAL_ERROR,
-                       "RNG internal error trying to compile %s\n",
-                       BAD_CAST xmlRelaxNGDefName(def), NULL);
+            /* This should not happen and generate an internal error */
+            fprintf(stderr, "RNG internal error trying to compile %s\n",
+                    xmlRelaxNGDefName(def));
             break;
     }
     return (ret);
@@ -4324,7 +4316,7 @@ xmlRelaxNGComputeInterleaves(void *payload, void *data,
                 if ((*tmp)->type == XML_RELAXNG_TEXT) {
                     res = xmlHashAddEntry2(partitions->triage,
                                            BAD_CAST "#text", NULL,
-                                           XML_INT_TO_PTR(i + 1));
+                                           (void *) (ptrdiff_t) (i + 1));
                     if (res != 0)
                         is_determinist = -1;
                 } else if (((*tmp)->type == XML_RELAXNG_ELEMENT) &&
@@ -4332,22 +4324,22 @@ xmlRelaxNGComputeInterleaves(void *payload, void *data,
                     if (((*tmp)->ns == NULL) || ((*tmp)->ns[0] == 0))
                         res = xmlHashAddEntry2(partitions->triage,
                                                (*tmp)->name, NULL,
-                                               XML_INT_TO_PTR(i + 1));
+                                               (void *) (ptrdiff_t) (i + 1));
                     else
                         res = xmlHashAddEntry2(partitions->triage,
                                                (*tmp)->name, (*tmp)->ns,
-                                               XML_INT_TO_PTR(i + 1));
+                                               (void *) (ptrdiff_t) (i + 1));
                     if (res != 0)
                         is_determinist = -1;
                 } else if ((*tmp)->type == XML_RELAXNG_ELEMENT) {
                     if (((*tmp)->ns == NULL) || ((*tmp)->ns[0] == 0))
                         res = xmlHashAddEntry2(partitions->triage,
                                                BAD_CAST "#any", NULL,
-                                               XML_INT_TO_PTR(i + 1));
+                                               (void *) (ptrdiff_t) (i + 1));
                     else
                         res = xmlHashAddEntry2(partitions->triage,
                                                BAD_CAST "#any", (*tmp)->ns,
-                                               XML_INT_TO_PTR(i + 1));
+                                               (void *) (ptrdiff_t) (i + 1));
                     if ((*tmp)->nameClass != NULL)
                         is_determinist = 2;
                     if (res != 0)
@@ -7574,23 +7566,6 @@ xmlRelaxNGSetParserStructuredErrors(xmlRelaxNGParserCtxtPtr ctxt,
     ctxt->userData = ctx;
 }
 
-/**
- * xmlRelaxNGSetResourceLoader:
- * @ctxt:  a Relax-NG parser context
- * @loader:  the callback
- * @vctxt:  contextual data for the callbacks
- *
- * Set the callback function used to load external resources.
- */
-void
-xmlRelaxNGSetResourceLoader(xmlRelaxNGParserCtxtPtr ctxt,
-                            xmlResourceLoader loader, void *vctxt) {
-    if (ctxt == NULL)
-        return;
-    ctxt->resourceLoader = loader;
-    ctxt->resourceCtxt = vctxt;
-}
-
 #ifdef LIBXML_OUTPUT_ENABLED
 
 /************************************************************************
@@ -7858,22 +7833,19 @@ xmlRelaxNGValidateCompiledCallback(xmlRegExecCtxtPtr exec ATTRIBUTE_UNUSED,
     int ret;
 
     if (ctxt == NULL) {
-        xmlRngVErr(ctxt, NULL, XML_ERR_INTERNAL_ERROR,
-                   "callback on %s missing context\n", token, NULL);
+        fprintf(stderr, "callback on %s missing context\n", token);
         return;
     }
     if (define == NULL) {
         if (token[0] == '#')
             return;
-        xmlRngVErr(ctxt, NULL, XML_ERR_INTERNAL_ERROR,
-                   "callback on %s missing define\n", token, NULL);
+        fprintf(stderr, "callback on %s missing define\n", token);
         if ((ctxt != NULL) && (ctxt->errNo == XML_RELAXNG_OK))
             ctxt->errNo = XML_RELAXNG_ERR_INTERNAL;
         return;
     }
     if (define->type != XML_RELAXNG_ELEMENT) {
-        xmlRngVErr(ctxt, NULL, XML_ERR_INTERNAL_ERROR,
-                   "callback on %s define is not element\n", token, NULL);
+        fprintf(stderr, "callback on %s define is not element\n", token);
         if (ctxt->errNo == XML_RELAXNG_OK)
             ctxt->errNo = XML_RELAXNG_ERR_INTERNAL;
         return;
@@ -8067,8 +8039,7 @@ xmlRelaxNGValidateProgressiveCallback(xmlRegExecCtxtPtr exec
     int ret = 0, oldflags;
 
     if (ctxt == NULL) {
-        xmlRngVErr(ctxt, NULL, XML_ERR_INTERNAL_ERROR,
-                   "callback on %s missing context\n", token, NULL);
+        fprintf(stderr, "callback on %s missing context\n", token);
         return;
     }
     node = ctxt->pnode;
@@ -8076,16 +8047,14 @@ xmlRelaxNGValidateProgressiveCallback(xmlRegExecCtxtPtr exec
     if (define == NULL) {
         if (token[0] == '#')
             return;
-        xmlRngVErr(ctxt, NULL, XML_ERR_INTERNAL_ERROR,
-                   "callback on %s missing define\n", token, NULL);
+        fprintf(stderr, "callback on %s missing define\n", token);
         if ((ctxt != NULL) && (ctxt->errNo == XML_RELAXNG_OK))
             ctxt->errNo = XML_RELAXNG_ERR_INTERNAL;
         ctxt->pstate = -1;
         return;
     }
     if (define->type != XML_RELAXNG_ELEMENT) {
-        xmlRngVErr(ctxt, NULL, XML_ERR_INTERNAL_ERROR,
-                   "callback on %s define is not element\n", token, NULL);
+        fprintf(stderr, "callback on %s define is not element\n", token);
         if (ctxt->errNo == XML_RELAXNG_OK)
             ctxt->errNo = XML_RELAXNG_ERR_INTERNAL;
         ctxt->pstate = -1;
@@ -8425,7 +8394,7 @@ xmlRelaxNGNormalize(xmlRelaxNGValidCtxtPtr ctxt, const xmlChar * str)
         tmp++;
     len = tmp - str;
 
-    ret = xmlMalloc(len + 1);
+    ret = (xmlChar *) xmlMallocAtomic(len + 1);
     if (ret == NULL) {
         xmlRngVErrMemory(ctxt);
         return (NULL);
@@ -9230,7 +9199,7 @@ xmlRelaxNGValidateInterleave(xmlRelaxNGValidCtxtPtr ctxt,
             if (tmp == NULL) {
                 i = nbgroups;
             } else {
-                i = XML_PTR_TO_INT(tmp) - 1;
+                i = ((ptrdiff_t) tmp) - 1;
                 if (partitions->flags & IS_NEEDCHECK) {
                     group = partitions->groups[i];
                     if (!xmlRelaxNGNodeMatchesList(cur, group->defs))
@@ -10679,6 +10648,7 @@ xmlRelaxNGCleanPSVI(xmlNodePtr node) {
 	    }
 	} while (cur != NULL);
     }
+    return;
 }
 /************************************************************************
  *									*
@@ -10866,4 +10836,4 @@ xmlRelaxNGValidateDoc(xmlRelaxNGValidCtxtPtr ctxt, xmlDocPtr doc)
     return (ret);
 }
 
-#endif /* LIBXML_RELAXNG_ENABLED */
+#endif /* LIBXML_SCHEMAS_ENABLED */

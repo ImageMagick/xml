@@ -38,7 +38,7 @@ CLEANFILES = libxml2.py $(GENERATED)
 all-local: libxml2.py
 
 $(GENERATED): $(srcdir)/generator.py $(API_DESC)
-	$(PYTHON) $(srcdir)/generator.py $(builddir)
+	$(PYTHON) $(srcdir)/generator.py $(srcdir)
 
 # libxml.c #includes libxml2-export.c
 libxml.$(OBJEXT): libxml2-export.c

@@ -139,17 +139,16 @@ typedef struct _xmlHashTable xmlRefTable;
 typedef xmlRefTable *xmlRefTablePtr;
 
 /* Notation */
-XML_DEPRECATED
 XMLPUBFUN xmlNotationPtr
 		xmlAddNotationDecl	(xmlValidCtxtPtr ctxt,
 					 xmlDtdPtr dtd,
 					 const xmlChar *name,
 					 const xmlChar *PublicID,
 					 const xmlChar *SystemID);
-XML_DEPRECATED
+#ifdef LIBXML_TREE_ENABLED
 XMLPUBFUN xmlNotationTablePtr
 		xmlCopyNotationTable	(xmlNotationTablePtr table);
-XML_DEPRECATED
+#endif /* LIBXML_TREE_ENABLED */
 XMLPUBFUN void
 		xmlFreeNotationTable	(xmlNotationTablePtr table);
 #ifdef LIBXML_OUTPUT_ENABLED
@@ -165,31 +164,24 @@ XMLPUBFUN void
 
 /* Element Content */
 /* the non Doc version are being deprecated */
-XML_DEPRECATED
 XMLPUBFUN xmlElementContentPtr
 		xmlNewElementContent	(const xmlChar *name,
 					 xmlElementContentType type);
-XML_DEPRECATED
 XMLPUBFUN xmlElementContentPtr
 		xmlCopyElementContent	(xmlElementContentPtr content);
-XML_DEPRECATED
 XMLPUBFUN void
 		xmlFreeElementContent	(xmlElementContentPtr cur);
 /* the new versions with doc argument */
-XML_DEPRECATED
 XMLPUBFUN xmlElementContentPtr
 		xmlNewDocElementContent	(xmlDocPtr doc,
 					 const xmlChar *name,
 					 xmlElementContentType type);
-XML_DEPRECATED
 XMLPUBFUN xmlElementContentPtr
 		xmlCopyDocElementContent(xmlDocPtr doc,
 					 xmlElementContentPtr content);
-XML_DEPRECATED
 XMLPUBFUN void
 		xmlFreeDocElementContent(xmlDocPtr doc,
 					 xmlElementContentPtr cur);
-XML_DEPRECATED
 XMLPUBFUN void
 		xmlSnprintfElementContent(char *buf,
 					 int size,
@@ -204,17 +196,16 @@ XMLPUBFUN void
 #endif /* LIBXML_OUTPUT_ENABLED */
 
 /* Element */
-XML_DEPRECATED
 XMLPUBFUN xmlElementPtr
 		xmlAddElementDecl	(xmlValidCtxtPtr ctxt,
 					 xmlDtdPtr dtd,
 					 const xmlChar *name,
 					 xmlElementTypeVal type,
 					 xmlElementContentPtr content);
-XML_DEPRECATED
+#ifdef LIBXML_TREE_ENABLED
 XMLPUBFUN xmlElementTablePtr
 		xmlCopyElementTable	(xmlElementTablePtr table);
-XML_DEPRECATED
+#endif /* LIBXML_TREE_ENABLED */
 XMLPUBFUN void
 		xmlFreeElementTable	(xmlElementTablePtr table);
 #ifdef LIBXML_OUTPUT_ENABLED
@@ -229,18 +220,16 @@ XMLPUBFUN void
 #endif /* LIBXML_OUTPUT_ENABLED */
 
 /* Enumeration */
-XML_DEPRECATED
 XMLPUBFUN xmlEnumerationPtr
 		xmlCreateEnumeration	(const xmlChar *name);
-/* XML_DEPRECATED, needed for custom attributeDecl SAX handler */
 XMLPUBFUN void
 		xmlFreeEnumeration	(xmlEnumerationPtr cur);
-XML_DEPRECATED
+#ifdef LIBXML_TREE_ENABLED
 XMLPUBFUN xmlEnumerationPtr
 		xmlCopyEnumeration	(xmlEnumerationPtr cur);
+#endif /* LIBXML_TREE_ENABLED */
 
 /* Attribute */
-XML_DEPRECATED
 XMLPUBFUN xmlAttributePtr
 		xmlAddAttributeDecl	(xmlValidCtxtPtr ctxt,
 					 xmlDtdPtr dtd,
@@ -251,10 +240,10 @@ XMLPUBFUN xmlAttributePtr
 					 xmlAttributeDefault def,
 					 const xmlChar *defaultValue,
 					 xmlEnumerationPtr tree);
-XML_DEPRECATED
+#ifdef LIBXML_TREE_ENABLED
 XMLPUBFUN xmlAttributeTablePtr
 		xmlCopyAttributeTable  (xmlAttributeTablePtr table);
-XML_DEPRECATED
+#endif /* LIBXML_TREE_ENABLED */
 XMLPUBFUN void
 		xmlFreeAttributeTable  (xmlAttributeTablePtr table);
 #ifdef LIBXML_OUTPUT_ENABLED
@@ -399,12 +388,15 @@ XML_DEPRECATED
 XMLPUBFUN int
 		xmlValidateDocumentFinal(xmlValidCtxtPtr ctxt,
 					 xmlDocPtr doc);
+#endif /* LIBXML_VALID_ENABLED */
+
+#if defined(LIBXML_VALID_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED)
 XML_DEPRECATED
 XMLPUBFUN int
 		xmlValidateNotationUse	(xmlValidCtxtPtr ctxt,
 					 xmlDocPtr doc,
 					 const xmlChar *notationName);
-#endif /* LIBXML_VALID_ENABLED */
+#endif /* LIBXML_VALID_ENABLED or LIBXML_SCHEMAS_ENABLED */
 
 XMLPUBFUN int
 		xmlIsMixedElement	(xmlDocPtr doc,

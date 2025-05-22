@@ -1,6 +1,5 @@
 EXTRA_DIST = \
 	buf.h \
-	cata.h \
 	dict.h \
 	enc.h \
 	entities.h \
@@ -8,7 +7,6 @@ EXTRA_DIST = \
 	globals.h \
 	html.h \
 	io.h \
-	lint.h \
 	memory.h \
 	parser.h \
 	regexp.h \
@@ -16,7 +14,6 @@ EXTRA_DIST = \
 	string.h \
 	threads.h \
 	tree.h \
-	unicode.h \
 	xinclude.h \
 	xpath.h \
 	xzlib.h

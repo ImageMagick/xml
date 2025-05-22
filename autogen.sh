@@ -64,7 +64,8 @@ if [ ! -d $srcdir/m4 ]; then
         mkdir $srcdir/m4
 fi
 
-aclocal
+# Replaced by autoreconf below
+autoreconf -if -Wall || exit 1
 
 if ! grep -q pkg.m4 aclocal.m4; then
     cat <<EOF
@@ -74,8 +75,6 @@ your distribution or set ACLOCAL_PATH to the directory containing pkg.m4.
 EOF
     exit 1
 fi
-
-autoreconf -if -Wall || exit 1
 
 cd $THEDIR
 

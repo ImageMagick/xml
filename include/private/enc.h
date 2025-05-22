@@ -7,12 +7,11 @@
 XML_HIDDEN void
 xmlInitEncodingInternal(void);
 
-XML_HIDDEN xmlCharEncError
+XML_HIDDEN int
 xmlEncInputChunk(xmlCharEncodingHandler *handler, unsigned char *out,
-                 int *outlen, const unsigned char *in, int *inlen,
-                 int flush);
-XML_HIDDEN xmlCharEncError
-xmlCharEncInput(xmlParserInputBufferPtr input, size_t *sizeOut, int flush);
+                 int *outlen, const unsigned char *in, int *inlen);
+XML_HIDDEN int
+xmlCharEncInput(xmlParserInputBufferPtr input);
 XML_HIDDEN int
 xmlCharEncOutput(xmlOutputBufferPtr output, int init);
 

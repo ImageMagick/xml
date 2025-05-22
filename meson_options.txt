@@ -3,11 +3,13 @@
 # [X] c14n
 # [X] catalog
 # [X] debugging
+# [X] ftp         - not minimum
 # [X] history
 # [X] html
 # [X] http
 # [X] iconv
 # [X] icu         - not minimum
+# [X] ipv6
 # [X] iso8859x
 # [X] legacy
 # [X] lzma
@@ -25,42 +27,59 @@
 # [X] threads
 # [X] thread-alloc
 # [X] tls
+# [X] tree
 # [X] valid
 # [X] writer
 # [X] xinclude
 # [X] xpath
 # [X] xptr
+# [X] xptr-locs
 # [X] zlib
 
 # [X] minimum
+# [X] ipv6
+
+# TODO: Options should be three-valued: "yes", "no", default
 
 option('c14n',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'Canonical XML 1.0 support'
 )
 
 option('catalog',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'XML Catalogs support'
 )
 
-option('debugging',
-  type: 'feature',
+option('debuging',
+  type: 'boolean',
+  value: true,
   description: 'Debugging module and shell'
 )
 
+option('ftp',
+  type: 'boolean',
+  value: false,
+  description: 'FTP support'
+)
+
 option('history',
-  type: 'feature',
+  type: 'boolean',
+  value: false,
   description: 'History support for shell'
 )
 
 option('html',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'HTML parser'
 )
 
 option('http',
-  type: 'feature',
+  type: 'boolean',
+  value: false,
   description: 'HTTP support'
 )
 
@@ -72,18 +91,24 @@ option('iconv',
 
 option('icu',
   type: 'feature',
-  value: 'disabled',
   description: 'ICU support'
 )
 
+option('ipv6',
+  type: 'boolean',
+  value: true,
+  description: 'Compilation of IPv6 code'
+)
+
 option('iso8859x',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'ISO-8859-X support if no iconv'
 )
 
 option('legacy',
-  type: 'feature',
-  value: 'disabled',
+  type: 'boolean',
+  value: false,
   description: 'Maximum ABI compatibility'
 )
 
@@ -98,57 +123,62 @@ option('modules',
 )
 
 option('output',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'Serialization support'
 )
 
 option('pattern',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'xmlPattern selection interface'
 )
 
 option('push',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'push parser interfaces'
 )
 
 option('python',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'Python bindings'
 )
 
 option('reader',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'xmlReader parsing interface'
 )
 
 option('readline',
-  type: 'feature',
-  description: 'use readline for shell history'
+  type: 'boolean',
+  value: true,
+  description: 'use readline in DIR (for shell history)'
 )
 
 option('regexps',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'Regular expressions support'
 )
 
-option('relaxng',
-  type: 'feature',
-  description: 'RELAX NG support'
-)
-
 option('sax1',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'Older SAX1 interface'
 )
 
 option('schemas',
-  type: 'feature',
-  description: 'XML Schemas 1.0 support'
+  type: 'boolean',
+  value: true,
+  description: 'XML Schemas 1.0 and RELAX NG support'
 )
 
 option('schematron',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'Schematron support'
 )
 
@@ -158,40 +188,57 @@ option('threads',
 )
 
 option('thread-alloc',
-  type: 'feature',
-  value: 'disabled',
+  type: 'boolean',
+  value: false,
   description: 'per-thread malloc hooks'
 )
 
 option('tls',
-  type: 'feature',
-  value: 'disabled',
+  type: 'boolean',
+  value: false,
   description: 'thread-local storage'
 )
 
+option('tree',
+  type: 'boolean',
+  value: true,
+  description: 'DOM like tree manipulation APIs'
+)
+
 option('valid',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'DTD validation support'
 )
 
 option('writer',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'xmlWriter serialization interface'
 )
 
 option('xinclude',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'XInclude 1.0 support'
 )
 
 option('xpath',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'XPath 1.0 support'
 )
 
 option('xptr',
-  type: 'feature',
+  type: 'boolean',
+  value: true,
   description: 'XPointer support'
+)
+
+option('xptr-locs',
+  type: 'boolean',
+  value: false,
+  description: 'XPointer ranges and points'
 )
 
 option('zlib',
@@ -202,5 +249,5 @@ option('zlib',
 option('minimum',
   type: 'boolean',
   value: false,
-  description: 'build a minimally sized library'
+  description: 'build a minimally sized library (default=false)'
 )

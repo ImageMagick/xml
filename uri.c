@@ -19,7 +19,6 @@
 #include <libxml/xmlerror.h>
 
 #include "private/error.h"
-#include "private/memory.h"
 
 /**
  * MAX_URI_LENGTH:
@@ -1120,15 +1119,15 @@ xmlCreateURI(void) {
 static xmlChar *
 xmlSaveUriRealloc(xmlChar *ret, int *max) {
     xmlChar *temp;
-    int newSize;
+    int tmp;
 
-    newSize = xmlGrowCapacity(*max, 1, 80, MAX_URI_LENGTH);
-    if (newSize < 0)
+    if (*max > MAX_URI_LENGTH)
         return(NULL);
-    temp = xmlRealloc(ret, newSize + 1);
+    tmp = *max * 2;
+    temp = (xmlChar *) xmlRealloc(ret, (tmp + 1));
     if (temp == NULL)
         return(NULL);
-    *max = newSize;
+    *max = tmp;
     return(temp);
 }
 
@@ -1152,7 +1151,7 @@ xmlSaveUri(xmlURIPtr uri) {
 
 
     max = 80;
-    ret = xmlMalloc(max + 1);
+    ret = (xmlChar *) xmlMallocAtomic(max + 1);
     if (ret == NULL)
 	return(NULL);
     len = 0;
@@ -1645,7 +1644,7 @@ xmlURIUnescapeString(const char *str, int len, char *target) {
     if (len < 0) return(NULL);
 
     if (target == NULL) {
-	ret = xmlMalloc(len + 1);
+	ret = (char *) xmlMallocAtomic(len + 1);
 	if (ret == NULL)
 	    return(NULL);
     } else
@@ -1696,6 +1695,7 @@ xmlURIUnescapeString(const char *str, int len, char *target) {
 xmlChar *
 xmlURIEscapeStr(const xmlChar *str, const xmlChar *list) {
     xmlChar *ret, ch;
+    xmlChar *temp;
     const xmlChar *in;
     int len, out;
 
@@ -1706,28 +1706,22 @@ xmlURIEscapeStr(const xmlChar *str, const xmlChar *list) {
     len = xmlStrlen(str);
 
     len += 20;
-    ret = xmlMalloc(len);
+    ret = (xmlChar *) xmlMallocAtomic(len);
     if (ret == NULL)
 	return(NULL);
     in = (const xmlChar *) str;
     out = 0;
     while(*in != 0) {
 	if (len - out <= 3) {
-            xmlChar *temp;
-            int newSize;
-
-            newSize = xmlGrowCapacity(len, 1, 1, XML_MAX_ITEMS);
-            if (newSize < 0) {
-		xmlFree(ret);
+            if (len > INT_MAX / 2)
                 return(NULL);
-            }
-            temp = xmlRealloc(ret, newSize);
+            temp = xmlRealloc(ret, len * 2);
 	    if (temp == NULL) {
 		xmlFree(ret);
 		return(NULL);
 	    }
 	    ret = temp;
-            len = newSize;
+            len *= 2;
 	}
 
 	ch = *in;
@@ -2312,7 +2306,7 @@ xmlBuildURISafe(const xmlChar *URI, const xmlChar *base, xmlChar **valPtr) {
 	len += strlen(ref->path);
     if (bas->path != NULL)
 	len += strlen(bas->path);
-    res->path = xmlMalloc(len);
+    res->path = (char *) xmlMallocAtomic(len);
     if (res->path == NULL)
 	goto done;
     res->path[0] = 0;
@@ -2537,10 +2531,12 @@ done:
  * @valPtr:  pointer to result URI
  *
  * Expresses the URI of the reference in terms relative to the
- * base. Some examples of this operation include:
- *
+ * base.  Some examples of this operation include:
  *     base = "http://site1.com/docs/book1.html"
  *        URI input                        URI returned
+ *     docs/pic1.gif                    pic1.gif
+ *     docs/img/pic1.gif                img/pic1.gif
+ *     img/pic1.gif                     ../img/pic1.gif
  *     http://site1.com/docs/pic1.gif   pic1.gif
  *     http://site2.com/docs/pic1.gif   http://site2.com/docs/pic1.gif
  *
@@ -2550,6 +2546,13 @@ done:
  *     docs/img/pic1.gif                img/pic1.gif
  *     img/pic1.gif                     ../img/pic1.gif
  *     http://site1.com/docs/pic1.gif   http://site1.com/docs/pic1.gif
+ *
+ *
+ * Note: if the URI reference is really weird or complicated, it may be
+ *       worthwhile to first convert it into a "nice" one by calling
+ *       xmlBuildURI (using 'base') before calling this routine,
+ *       since this routine (for reasonable efficiency) assumes URI has
+ *       already been through some validation.
  *
  * Available since 2.13.0.
  *

@@ -1,4 +1,4 @@
-[DLL]
+[DYNAMIC_LIBRARY]
 
 [LICENSE]
 Copyright
@@ -6,38 +6,32 @@ Copyright
 [DEFINES]
 IN_LIBXML
 
-[DEFINES_LIB]
+[STATIC_DEFINES]
 LIBXML_STATIC
-
-[DIRECTORIES]
-.
-include
-include\libxml
 
 [INCLUDES]
 include
-zlib->.
 
-[LIBRARIES]
-ws2_32.lib
+[INCLUDE_ARTIFACTS]
+include\libxml -> libxml
 
 [EXCLUDES]
-lintmain.c
 nanoftp.c
 nanohttp.c
 rngparser.c
 runsuite.c
 runtest.c
 runxmlconf.c
-test*
-trio.c
-trionan.c
-triostr.c
 xmlcatalog.c
 xmllint.c
 xpath.c
+example\
+fuzz\
+os400\
+python\
+test
 
-[CONFIG_DEFINE]
+[MAGICK_BASECONFIG_DEFINE]
 /*
   Define to use the GNOME XML library
 */

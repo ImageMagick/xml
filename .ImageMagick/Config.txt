@@ -16,9 +16,8 @@ include
 include\libxml -> libxml
 
 [EXCLUDES]
-nanoftp.c
+lintmain.c
 nanohttp.c
-rngparser.c
 runsuite.c
 runtest.c
 runxmlconf.c
@@ -27,8 +26,8 @@ xmllint.c
 xpath.c
 example\
 fuzz\
-os400\
 python\
+shell.c
 test
 
 [MAGICK_BASECONFIG_DEFINE]

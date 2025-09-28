@@ -1,5 +1,23 @@
 [DYNAMIC_LIBRARY]
 
+[VERSION]
+2.14.5
+
+[RELEASE_DATE]
+2025-07-10
+
+[PRODUCT_NAME]
+libxml2
+
+[COMPANY_NAME]
+Daniel Veillard
+
+[URL]
+https://gitlab.gnome.org/GNOME/libxml2
+
+[COPYRIGHT]
+Copyright (C) 1998 Daniel Veillard
+
 [LICENSE_FILE]
 Copyright
 

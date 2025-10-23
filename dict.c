@@ -892,7 +892,6 @@ xmlDictQLookup(xmlDict *dict, const xmlChar *prefix, const xmlChar *name) {
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
   #include <bcrypt.h>
-  #pragma comment(lib, "bcrypt.lib")
 #else
   #if HAVE_DECL_GETENTROPY
     /* POSIX 2024 */
